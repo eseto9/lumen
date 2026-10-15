@@ -227,7 +227,7 @@ const CFG = {
   TICK_HZ: 60, MAX_STEPS: 5,       // fixed-timestep simulation
   // firefly
   P_RADIUS: 10, P_SPEED: 290, P_ACCEL: 12, P_CHARGE_SLOW: 0.55,
-  LIGHT_MAX: 100, LIGHT_START: 85, LIGHT_DECAY: 0.55, LIGHT_DECAY_PER_HOUR: 0.18, LIGHT_DECAY_PER_ROUND: 0.035,
+  LIGHT_MAX: 100, LIGHT_START: 85, LIGHT_DECAY: 0.55, LIGHT_DECAY_PER_HOUR: 0.18, LIGHT_DECAY_PER_ROUND: 0.02, LIGHT_DECAY_LATE: 0.0032,   // fade climbs gently early, steeply late (per round²)
   LIGHT_R_MIN: 48, LIGHT_R_PER: 2.0,          // vision radius = MIN + light * PER
   WARMTH_RANGE: 210, WARMTH_FACTOR: 0.75,     // co-op: fade slower near a friend
   LAST_LIGHT: 25, LAST_LIGHT_MULT: 2,         // risky-dim score bonus
@@ -247,7 +247,7 @@ const CFG = {
   ROUNDS: 40, BOSS_EVERY: 5, ROUND_LV: 0.65,              // difficulty level per round
   WAVE_BASE: 10, WAVE_PER_ROUND: 3.4, WAVE_RATE: 1.3, WAVE_RATE_PER_ROUND: 0.1,
   CLEAR_BONUS: 150, VICTORY_BONUS: 20000, CLEAR_PAUSE: 1.8, DRAFT_TIME: 10,   // co-op only: auto-pick after N s (solo waits for you)
-  DRAFT_HEAL: 25,
+
   // versus crystals (XP from kills -> choose 1 of 3)
   XP_BASE: 10, XP_STEP: 12, EVO_ORB_DIST: 105, EVO_ORB_LIFE: 15,
   ORBIT_R: 48, ORBIT_SPEED: 3.4, ECHO_DELAY: 0.45,
@@ -258,7 +258,7 @@ const CFG = {
   VS_TIME: 120, VS_RESPAWN: 2.5, VS_SCORE_LOSS: 0.25, STEAL_BASE: 6, STEAL_PER: 14, STEAL_PUSH: 520, SNUFF_BONUS: 100,
   // co-op
   RES_WINDOW: 0.4, RES_DUR: 1.4, RES_WIDTH: 22, RES_DPS: 8, RES_REFUND: 0.5, RES_POINTS: 100,
-  REVIVE_RANGE: 70, REVIVE_TIME: 1.2, REVIVE_GIVE: 35, REVIVE_COST: 12,
+  REVIVE_RANGE: 70, REVIVE_TIME: 2.2, REVIVE_GIVE: 30, REVIVE_COST: 18,
   // network
   SNAP_EVERY: 2,          // host sends a snapshot every N ticks (30 Hz)
   INTERP_DELAY: 6,        // guest renders remote entities N ticks (100 ms) in the past
@@ -268,20 +268,20 @@ const CFG = {
 };
 // Shadow types: index is the network type id. boss:true shows a health bar.
 const TYPES = [
-  { name: 'wisp',      r: 14, hp: 1,  spd: 84,  drain: 1,   pts: 10,  motes: 1,  xp: 1 },
-  { name: 'stalker',   r: 12, hp: 1,  spd: 140, drain: 1,   pts: 15,  motes: 1,  xp: 1 },
-  { name: 'brute',     r: 26, hp: 4,  spd: 60,  drain: 2,   pts: 40,  motes: 3,  xp: 3 },
-  { name: 'splitter',  r: 18, hp: 2,  spd: 74,  drain: 1.2, pts: 20,  motes: 1,  xp: 2 },
-  { name: 'lurker',    r: 13, hp: 1,  spd: 96,  drain: 1.6, pts: 30,  motes: 2,  xp: 2 },
-  { name: 'Umbra',     r: 52, hp: 14, spd: 34,  drain: 3,   pts: 500, motes: 14, xp: 12, boss: true },
-  { name: 'swarmling', r: 7,  hp: 1,  spd: 168, drain: 0.6, pts: 6,   motes: 0,  xp: 1 },
-  { name: 'spitter',   r: 15, hp: 2,  spd: 58,  drain: 1,   pts: 35,  motes: 2,  xp: 2 },
-  { name: 'The Maw',   r: 46, hp: 30, spd: 46,  drain: 3,   pts: 1200, motes: 16, xp: 20, boss: true },
-  { name: 'The Weaver', r: 44, hp: 32, spd: 38, drain: 2.5, pts: 1500, motes: 16, xp: 20, boss: true },
-  { name: 'Eclipse',   r: 50, hp: 40, spd: 40,  drain: 3,   pts: 2000, motes: 18, xp: 25, boss: true },
-  { name: 'Hydra',     r: 48, hp: 34, spd: 50,  drain: 3,   pts: 1800, motes: 10, xp: 20, boss: true },
-  { name: 'Hydra Spawn', r: 30, hp: 14, spd: 72, drain: 2,  pts: 600, motes: 8,  xp: 8, boss: true },
-  { name: 'The Long Night', r: 66, hp: 110, spd: 32, drain: 4, pts: 8000, motes: 30, xp: 60, boss: true },
+  { name: 'wisp',      r: 14, hp: 1,  spd: 84,  drain: 1,   pts: 10,  motes: 1,  xp: 1, heal: 1 },
+  { name: 'stalker',   r: 12, hp: 1,  spd: 140, drain: 1,   pts: 15,  motes: 1,  xp: 1, heal: 1 },
+  { name: 'brute',     r: 26, hp: 4,  spd: 60,  drain: 2,   pts: 40,  motes: 3,  xp: 3, heal: 3 },
+  { name: 'splitter',  r: 18, hp: 2,  spd: 74,  drain: 1.2, pts: 20,  motes: 1,  xp: 2, heal: 2 },
+  { name: 'lurker',    r: 13, hp: 1,  spd: 96,  drain: 1.6, pts: 30,  motes: 2,  xp: 2, heal: 2 },
+  { name: 'Umbra',     r: 52, hp: 14, spd: 34,  drain: 1.8,   pts: 500, motes: 14, xp: 12, heal: 25, boss: true },
+  { name: 'swarmling', r: 7,  hp: 1,  spd: 168, drain: 0.6, pts: 6,   motes: 0,  xp: 1, heal: 0.5 },
+  { name: 'spitter',   r: 15, hp: 2,  spd: 58,  drain: 1,   pts: 35,  motes: 2,  xp: 2, heal: 2 },
+  { name: 'The Maw',   r: 46, hp: 30, spd: 46,  drain: 1.6,   pts: 1200, motes: 16, xp: 20, heal: 30, boss: true },
+  { name: 'The Weaver', r: 44, hp: 32, spd: 38, drain: 1.4, pts: 1500, motes: 16, xp: 20, heal: 30, boss: true },
+  { name: 'Eclipse',   r: 50, hp: 40, spd: 40,  drain: 1.7,   pts: 2000, motes: 18, xp: 25, heal: 35, boss: true },
+  { name: 'Hydra',     r: 48, hp: 34, spd: 50,  drain: 1.7,   pts: 1800, motes: 10, xp: 20, heal: 25, boss: true },
+  { name: 'Hydra Spawn', r: 30, hp: 14, spd: 72, drain: 1.3,  pts: 600, motes: 8,  xp: 8, heal: 10, boss: true },
+  { name: 'The Long Night', r: 66, hp: 110, spd: 32, drain: 2.2, pts: 8000, motes: 30, xp: 60, heal: 50, boss: true },
 ];
 // Boss rounds: shadow types spawned at the start, and the relic the round unlocks.
 const BOSS_ROUNDS = {
@@ -295,20 +295,20 @@ const BOSS_ROUNDS = {
 const CARDS = [
   { k: 'bloom',  name: 'Wide Bloom',   desc: '+10% burst size',              max: 3 },
   { k: 'wick',   name: 'Quick Wick',   desc: 'Charge 30% faster',            max: 3 },
-  { k: 'thrift', name: 'Thrifty Glow', desc: 'Bursts cost 20% less',         max: 3 },
+  { k: 'thrift', name: 'Thrifty Glow', desc: 'Bursts cost 15% less',         max: 3 },
   { k: 'wax',    name: 'Thick Wax',    desc: '+15 max light & heal',         max: 3 },
   { k: 'wings',  name: 'Swift Wings',  desc: '+10% speed',                   max: 3 },
   { k: 'chain',  name: 'Chain Spark',  desc: 'Kills arc to a neighbour',     max: 3 },
   { k: 'echo',   name: 'Echo',         desc: 'Bursts repeat, smaller',       max: 3 },
-  { k: 'heart',  name: 'Bright Heart', desc: 'Sparks give +25% light',       max: 3 },
+  { k: 'heart',  name: 'Bright Heart', desc: 'Sparks & kills give +25% light', max: 3 },
   { k: 'shell',  name: 'Hard Shell',   desc: '-20% damage taken',            max: 3 },
   { k: 'orbit',  name: 'Satellite',    desc: 'Orbiting spark cuts shadows',  max: 3 },
   { k: 'nova',   name: 'Nova Heart',   desc: 'Below 20 light: free full burst (20s)', max: 1 },
   { k: 'magnet', name: 'Lodestar',     desc: '+60% spark pull range',        max: 2 },
   { k: 'crit',   name: 'Starfire',     desc: '15% chance: double-damage burst', max: 3 },
-  { k: 'mend',   name: 'Moonwell',     desc: '+10 max light, heal 30 now',   max: 5 },
+  { k: 'mend',   name: 'Moonwell',     desc: '+10 max light; kills restore more light', max: 5 },
   { k: 'link',   name: 'Soul Link',    desc: 'Resonance easier, beams last longer', max: 2, coop: 1 },
-  { k: 'hearth', name: 'Hearth',       desc: 'Near a friend you regain light', max: 2, coop: 1 },
+  { k: 'hearth', name: 'Hearth',       desc: 'Near a friend your light fades 30% slower', max: 2, coop: 1 },
   { k: 'guardian', name: 'Guardian',   desc: 'Rekindle 2× faster; rekindled friends get Ward', max: 1, coop: 1 },
   { k: 'twin',   name: 'Twin Flare',   desc: 'Your bursts also erupt at your friends', max: 2, coop: 1 },
   { k: 'share',  name: 'Shared Glow',  desc: 'Sparks you grab also feed nearby friends', max: 2, coop: 1 },
@@ -357,7 +357,7 @@ const PUPS = [
   { k: 'ward',  name: 'Ward',       desc: 'Invulnerable for 6s',     col: '#5cc8ff', col2: '#e6f6ff', dur: 6 },
   { k: 'over',  name: 'Overcharge', desc: 'Instant free bursts 8s',  col: '#ffcf3f', col2: '#ff7b3c', dur: 8 },
   { k: 'moon',  name: 'Moonbeam',   desc: 'Lightning strikes',       col: '#a98bff', col2: '#ff9de6' },
-  { k: 'honey', name: 'Honeylight', desc: '+30 light',               col: '#ff9f43', col2: '#ffe066' },
+  { k: 'honey', name: 'Honeylight', desc: '+40 light',               col: '#ff9f43', col2: '#ffe066' },
   { k: 'swarm', name: 'Swarm',      desc: '+3 satellites for 10s',   col: '#7ed957', col2: '#e6ff7a', dur: 10 },
 ];
 const PU = Object.fromEntries(PUPS.map((e, i) => [e.k, i]));
@@ -511,6 +511,7 @@ const Sim = (() => {
     updateMotes(W, dt);
     updatePickups(W, dt);
     if (W.mode === 'coop') updateRevive(W, dt);
+    for (const p of W.players) if (p.healAcc >= 1) { W.events.push({ k: 'heal', p: p.id, x: p.x, y: p.y, n: Math.round(p.healAcc) }); p.healAcc = 0; }
     compact(W);
     if (W.phase !== 'play') return;                     // round cleared / victory this tick
     const over = W.mode === 'versus' ? W.timeLeft <= 0 : !W.players.some(p => p.alive);
@@ -524,7 +525,7 @@ const Sim = (() => {
 
   /* ---------------- ROUNDS ---------------- */
   function startRound(W) {
-    const r = W.round, n = W.players.length, pf = W.mode === 'coop' ? 1 + 0.6 * (n - 1) : 1;
+    const r = W.round, n = W.players.length, pf = W.mode === 'coop' ? 1 + 0.75 * (n - 1) : 1;
     W.waveLeft = Math.round((CFG.WAVE_BASE + CFG.WAVE_PER_ROUND * (r - 1)) * pf);
     W.waveRate = (CFG.WAVE_RATE + CFG.WAVE_RATE_PER_ROUND * (r - 1)) * pf;
     W.roundT = 0; W.waveAcc = 0.6;
@@ -598,8 +599,8 @@ const Sim = (() => {
     W.phase = 'draft'; W.draftT = W.mode === 'coop' ? CFG.DRAFT_TIME : -1; W.draftAge = 0;   // -1 = no time limit
     W.bolts.length = 0; W.pups.length = 0; W.rings.length = 0; W.beams.length = 0; W.echoes.length = 0; W.orbs.length = 0;
     for (const p of W.players) {
-      if (!p.alive) { p.alive = true; p.light = 40; p.inv = 2; W.events.push({ k: 'revive', p: p.id, by: -1, x: p.x, y: p.y }); }
-      p.light = Math.min(p.maxL, p.light + CFG.DRAFT_HEAL); p.charging = false; p.charge = 0; p.vx = p.vy = 0;
+      if (!p.alive) { p.alive = true; p.inv = 2; W.events.push({ k: 'revive', p: p.id, by: -1, x: p.x, y: p.y }); }
+      p.light = p.maxL;                                     // every round starts at full light p.charging = false; p.charge = 0; p.vx = p.vy = 0;
       p.offer = makeOffer(W, p); p.dsel = 0; p.picked = -1; p.dArm = false; p.dHeld = false; p.ddir = 0;
       p.ax = p.x; p.ay = p.y; p.linger = 0; p.gloom = 0; p.ward = p.over = p.swarm = 0;
       if (!p.offer.length) p.score += 500;
@@ -628,7 +629,7 @@ const Sim = (() => {
   function applyCard(W, p, k, x, y) {
     p.evo[k]++;
     if (k === EV.wax) { p.maxL += 15; p.light = Math.min(p.maxL, p.light + 15); }
-    if (k === EV.mend) { p.maxL += 10; p.light = Math.min(p.maxL, p.light + 30); }
+    if (k === EV.mend) { p.maxL += 10; p.light = Math.min(p.maxL, p.light + 10); }
     if (k === EV.sun) { p.maxL += 40; p.light = Math.min(p.maxL, p.light + 40); }
     if (k === EV.wings) p.spdMul = 1 + 0.1 * p.evo[k];
     W.events.push({ k: 'evo', p: p.id, e: k, lvl: p.evo[k], x, y });
@@ -674,10 +675,10 @@ const Sim = (() => {
       if (!p.charging && p.cd <= 0 && p.light > CFG.FL_MIN_LIGHT) { p.charging = true; p.charge = 0; }
       if (p.charging) p.charge = p.over > 0 ? 1 : Math.min(1, p.charge + dt / CFG.FL_CHARGE_TIME * (1 + 0.3 * p.evo[EV.wick]));
     } else if (p.charging) release(W, p);
-    let d = rounds(W) ? CFG.LIGHT_DECAY + CFG.LIGHT_DECAY_PER_ROUND * (W.round - 1) : CFG.LIGHT_DECAY + CFG.LIGHT_DECAY_PER_HOUR * W.hourIdx;
+    let d = rounds(W) ? CFG.LIGHT_DECAY + CFG.LIGHT_DECAY_PER_ROUND * (W.round - 1) + CFG.LIGHT_DECAY_LATE * (W.round - 1) ** 2 : CFG.LIGHT_DECAY + CFG.LIGHT_DECAY_PER_HOUR * W.hourIdx;
     if (p.evo[EV.sun]) d *= 0.5;
     if (W.mode === 'coop' && W.players.some(q => q !== p && q.alive && (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < CFG.WARMTH_RANGE ** 2)) {
-      d *= CFG.WARMTH_FACTOR; d -= 1.2 * p.evo[EV.hearth];       // Hearth: regain light near friends
+      d *= CFG.WARMTH_FACTOR * (1 - 0.3 * p.evo[EV.hearth]);       // Hearth: fade even slower near friends
     }
     if (syn(p, 'moonwax')) d -= 0.8;
     // GLOOM: camping in one area makes the dark gather — shadows rise from the ground
@@ -714,7 +715,7 @@ const Sim = (() => {
 
   function release(W, p) {
     const c = p.charge, R = flareR(c, p.evo[EV.bloom]) * (c >= 1 && syn(p, 'wildfire') ? 1.25 : 1);
-    const cost = p.over > 0 ? 0 : lerp(CFG.FL_COST_MIN, CFG.FL_COST_MAX, c) * (1 - 0.2 * p.evo[EV.thrift]);
+    const cost = p.over > 0 ? 0 : lerp(CFG.FL_COST_MIN, CFG.FL_COST_MAX, c) * (1 - 0.15 * p.evo[EV.thrift]);
     p.light = Math.max(1, p.light - cost);            // a flare never kills you by itself
     p.charging = false; p.charge = 0; p.cd = CFG.FL_COOLDOWN; p.bursts++;
     const ring = makeRing(W, p, p.x, p.y, R, c, cost, false);
@@ -783,6 +784,7 @@ const Sim = (() => {
   function damage(W, s, dmg, src, owner, fx, fy) {
     if (s.dead) return;
     s.hp -= dmg; s.flash = 0.12;
+    if (TYPES[s.ty].boss && owner && owner.alive && dmg >= 1) { const hl = 1.2 * dmg; owner.light = Math.min(owner.maxL, owner.light + hl); owner.healAcc = (owner.healAcc || 0) + hl; }   // boss hits feed you light
     if (fx != null) { const d = Math.hypot(s.x - fx, s.y - fy) || 1, kb = TYPES[s.ty].boss ? 60 : 260; s.vx += (s.x - fx) / d * kb; s.vy += (s.y - fy) / d * kb; }
     if (s.hp <= 0) killShadow(W, s, src, owner);
     else if (dmg >= 1) W.events.push({ k: 'hit', x: s.x, y: s.y, ty: s.ty });
@@ -793,7 +795,13 @@ const Sim = (() => {
     s.dead = true; const T = TYPES[s.ty]; const n = ++src.kills;
     const low = !!owner && owner.light < CFG.LAST_LIGHT;
     const pts = T.pts * n * (low ? CFG.LAST_LIGHT_MULT : 1);
-    if (owner) { owner.score += pts; owner.kills++; owner.best = Math.max(owner.best, n); if (!rounds(W)) gainXp(W, owner, T.xp); }
+    if (owner) {
+      owner.score += pts; owner.kills++; owner.best = Math.max(owner.best, n); if (!rounds(W)) gainXp(W, owner, T.xp);
+      // kills restore light: rewards fighting instead of hiding
+      const taper = T.boss ? 1 : Math.max(0.2, 1 - 0.03 * (W.round - 1));   // huge late waves would otherwise heal too much
+      const hl = ((T.heal || 1) + owner.evo[EV.mend] * 0.5) * (1 + 0.25 * owner.evo[EV.heart]) * taper * (W.mode === 'coop' ? 0.6 : 1);
+      if (owner.alive) { owner.light = Math.min(owner.maxL, owner.light + hl); owner.healAcc = (owner.healAcc || 0) + hl; }
+    }
     const drop = CFG.KILL_DROP * Math.max(0.3, 1 - 0.05 * lvOf(W));
     for (let i = 0; i < T.motes; i++) if (T.motes > 1 || W.rnd() < drop) addMote(W, s.x, s.y, owner ? owner.id : -1, true);
     if (s.ty === 3) for (let i = 0; i < 3; i++) {     // splitter -> 3 wisps (immune to this burst)
@@ -851,7 +859,7 @@ const Sim = (() => {
     else if (ty === PU.ward) p.ward = P.dur;
     else if (ty === PU.over) p.over = P.dur;
     else if (ty === PU.swarm) p.swarm = P.dur;
-    else if (ty === PU.honey) p.light = Math.min(p.maxL, p.light + 30);
+    else if (ty === PU.honey) p.light = Math.min(p.maxL, p.light + 40);
     else if (ty === PU.moon) {
       const tg = W.shadows.filter(s => !s.dead).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 10);
       const src = { kills: 0, chain: true };
@@ -1006,7 +1014,7 @@ const Sim = (() => {
       } else if ((s.ty === 8 || s.ty === 11 || s.ty === 12) && !idle) {
         if (chargeAI(W, s, tgt, dt, s.ty === 12 ? 480 : 560, s.ty === 12 ? 3 : 3.6)) continue;
       } else if (s.ty === 9 && !idle) {                   // weaver: keeps away, bolt rings, swarm packs
-        if (d < 280) { ux = -ux; uy = -uy; }
+        if (d < 190) { ux = -ux; uy = -uy; }                 // hangs back less, so the fight doesn't become a long chase
         s.acd -= dt; if (s.acd <= 0 && s.spawnT > 1.5) { s.acd = 3; boltRing(W, s, 12, 180); }
         s.dcd -= dt; if (s.dcd <= 0) { s.dcd = 7; for (let i = 0; i < 3 && sh.length < CFG.SH_MAX; i++) { const c = spawnAt(W, 6, s.x + (W.rnd() - 0.5) * 60, s.y + (W.rnd() - 0.5) * 60); c.spawnT = 3; } }
       } else if (s.ty === 10 && !idle) {                  // eclipse: light-draining aura, lurkers
@@ -1408,6 +1416,7 @@ const FX = {
         if (S && !(o.predicted && mine)) Sound.flare(e.c, mine); break;
       case 'zap': this.zaps.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, col: e.moon ? '#d9ccff' : c, life: e.moon ? 0.35 : 0.22, max: e.moon ? 0.35 : 0.22 }); this.spark(e.x2, e.y2, '#e6f6ff', 5, 120, 0.4, 2); if (e.moon) this.kick(3); if (S) Sound.zap(); break;
       case 'lvl': this.ring(e.x, e.y, 70, c, 26); if (mine) { this.banner('LEVEL ' + e.lvl, 'Fly into a crystal to evolve', c, 2.2); } else this.text(e.x, e.y - 30, 'LEVEL UP', c, 16); if (S) Sound.lvl(); break;
+      case 'heal': if (mine) this.text(e.x + 16, e.y - 18, '+' + e.n, '#fff3c4', 11 + Math.min(e.n, 30) * 0.25); break;
       case 'syn': { const S2 = SYNERGIES[e.s]; this.ring(e.x, e.y, 110, '#ffd25a', 36); this.spark(e.x, e.y, '#ffe9a8', 30, 240, 1, 3); if (mine) { this.banner('⚡ SYNERGY: ' + S2.name.toUpperCase(), S2.desc, '#ffd25a', 3.4); this.flash = 0.35; this.flashCol = '255,215,120'; } else this.text(e.x, e.y - 40, '⚡ ' + S2.name, '#ffd25a', 16); if (S) Sound.relic(); break; }
       case 'evo': { const E = EVOS[e.e]; this.spark(e.x, e.y, c, 24, 200, 0.8, 3); this.text(e.x, e.y - 24, E.name + ' ' + roman(e.lvl), c, 18); if (mine) this.text(e.x, e.y - 4, E.desc, '#f4ecdc', 12); if (S) Sound.evo(); break; }
       case 'pu': { const P = PUPS[e.ty]; this.ring(e.x, e.y, 80, P.col, 24); this.text(e.x, e.y - 26, P.name.toUpperCase(), P.col, 20); if (mine) { this.flash = 0.25; this.flashCol = hexRgb(P.col).join(','); this.kick(4); } if (S) Sound.pu(); break; }
